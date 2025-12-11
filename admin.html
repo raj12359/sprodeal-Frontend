@@ -9,92 +9,85 @@
 body {
     font-family: Arial, sans-serif;
     background: #eef2f3;
-    padding: 20px;
+    padding: 10px;
 }
+
 .container {
     max-width: 900px;
     margin: auto;
     background: white;
-    padding: 20px;
+    padding: 15px;
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.1);
 }
-h1 {
-    text-align: center;
-    color: #333;
-}
+
+h1, h2 { text-align: center; }
+
 button {
-    padding: 8px 12px;
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
     background: #4CAF50;
     color: white;
     border: none;
     border-radius: 8px;
-    cursor: pointer;
+    font-size: 16px;
 }
-button:hover {
-    background: #3e8e41;
-}
-.logout-btn {
-    background: #ff5252;
-}
-.logout-btn:hover {
-    background: #d43b3b;
-}
-.delete-btn {
-    background: #e53935;
-}
-.delete-btn:hover {
-    background: #b71c1c;
-}
-.update-btn {
-    background: #0277bd;
-}
-.update-btn:hover {
-    background: #015a8c;
-}
+
+button:hover { background: #3e8e41; }
+
+.logout-btn { background: #ff5252; }
+.logout-btn:hover { background: #d43b3b; }
+.delete-btn { background: #e53935; }
+.update-btn { background: #0277bd; }
+
 table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 15px;
+    min-width: 700px;
 }
+
 th, td {
     border: 1px solid #ccc;
     padding: 10px;
     font-size: 14px;
 }
-th {
-    background: #4CAF50;
-    color: white;
-}
-#loginBox {
-    text-align: center;
-    padding: 20px;
-}
+th { background: #4CAF50; color: white; }
+
+#loginBox { padding: 20px; text-align: center; }
 input {
-    padding: 10px;
-    width: 80%;
+    padding: 12px;
+    width: 90%;
     border: 1px solid #aaa;
     border-radius: 8px;
     margin-bottom: 10px;
 }
 
-/* Popup update box */
+#tableAreaWrapper {
+    overflow-x: auto;
+    margin-top: 15px;
+}
+
 #updatePopup {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,0.6);
     display: none;
     justify-content: center;
     align-items: center;
 }
+
 .popup-box {
     background: white;
     padding: 20px;
     width: 300px;
     border-radius: 10px;
+}
+
+@media screen and (max-width: 600px){
+    table { font-size: 12px; min-width: 600px; }
+    button { font-size: 15px; }
 }
 </style>
 </head>
@@ -103,15 +96,15 @@ input {
 
 <div class="container">
 
-    <!-- ADMIN LOGIN BOX -->
+    <!-- ADMIN LOGIN -->
     <div id="loginBox">
         <h2>Admin Login</h2>
         <input type="password" id="adminPass" placeholder="Enter Admin Password">
-        <br>
         <button onclick="adminLogin()">Login</button>
+        <p id="loginMsg" style="color:red;"></p>
     </div>
 
-    <!-- MAIN ADMIN PANEL -->
+    <!-- PANEL -->
     <div id="adminPanel" style="display:none;">
         <h1>Spro Deal Admin Panel</h1>
 
@@ -119,7 +112,9 @@ input {
         <button onclick="loadVerification()">Show Verification Data</button>
         <button class="logout-btn" onclick="logout()">Logout</button>
 
-        <div id="tableArea"></div>
+        <div id="tableAreaWrapper">
+            <div id="tableArea"></div>
+        </div>
     </div>
 
 </div>
@@ -130,23 +125,33 @@ input {
         <h3>Update User</h3>
         <input type="text" id="updPhone" placeholder="Phone">
         <input type="text" id="updPassword" placeholder="Password">
-        <br><br>
         <button onclick="saveUpdate()">Save</button>
         <button onclick="closePopup()">Cancel</button>
     </div>
 </div>
 
 <script>
-const ADMIN_PASSWORD = "Rajeev69@";
-let updateUserId = null;
 
-function adminLogin() {
+// 🔥 APNA BACKEND URL YAHAN LAGAO
+const BASE_URL = "https://sprodeal-backend-5.onrender.com";
+
+// ---------------- ADMIN LOGIN ----------------
+async function adminLogin() {
     let pass = document.getElementById("adminPass").value;
-    if (pass === ADMIN_PASSWORD) {
+
+    const res = await fetch(`${BASE_URL}/admin-login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: pass })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
         document.getElementById("loginBox").style.display = "none";
         document.getElementById("adminPanel").style.display = "block";
     } else {
-        alert("Incorrect Password!");
+        alert(data.message);
     }
 }
 
@@ -154,45 +159,43 @@ function logout() {
     document.getElementById("adminPanel").style.display = "none";
     document.getElementById("loginBox").style.display = "block";
     document.getElementById("adminPass").value = "";
+    document.getElementById("tableArea").innerHTML = "";
 }
 
 // ---------------- USERS TABLE ----------------
-
 async function loadUsers() {
-    const res = await fetch("http://localhost:5000/admin/getUsers");
+    document.getElementById("tableArea").innerHTML = "<h3>Loading...</h3>";
+
+    const res = await fetch(`${BASE_URL}/admin/getUsers`);
     let data = await res.json();
-    data.sort((a, b) => a.id - b.id);
 
     let html = `
-        <h2>Login Table</h2>
-        <table>
-            <tr>
-                <th>ID</th>
-                <th>Phone</th>
-                <th>Password</th>
-                <th>Date</th>
-                <th>Action</th>
-            </tr>
+    <h2>Login Data</h2>
+    <table>
+        <tr>
+            <th>ID</th><th>Phone</th><th>Password</th><th>Date</th><th>Action</th>
+        </tr>
     `;
 
-    data.forEach(row => {
+    data.forEach(r => {
         html += `
-            <tr>
-                <td>${row.id}</td>
-                <td>${row.phone}</td>
-                <td>${row.password}</td>
-                <td>${row.created_at || "-"}</td>
-                <td>
-                    <button class="update-btn" onclick="openUpdate(${row.id}, '${row.phone}', '${row.password}')">Update</button>
-                    <button class="delete-btn" onclick="deleteUser(${row.id})">Delete</button>
-                </td>
-            </tr>
-        `;
+        <tr>
+            <td>${r._id}</td>
+            <td>${r.phone}</td>
+            <td>${r.password}</td>
+            <td>${r.createdAt ? new Date(r.createdAt).toLocaleString() : "-"}</td>
+            <td>
+                <button class="update-btn" onclick="openUpdate('${r._id}', '${r.phone}', '${r.password}')">Update</button>
+                <button class="delete-btn" onclick="deleteUser('${r._id}')">Delete</button>
+            </td>
+        </tr>`;
     });
 
     html += "</table>";
     document.getElementById("tableArea").innerHTML = html;
 }
+
+let updateUserId = null;
 
 function openUpdate(id, phone, pass) {
     updateUserId = id;
@@ -200,7 +203,6 @@ function openUpdate(id, phone, pass) {
     document.getElementById("updPassword").value = pass;
     document.getElementById("updatePopup").style.display = "flex";
 }
-
 function closePopup() {
     document.getElementById("updatePopup").style.display = "none";
 }
@@ -209,65 +211,55 @@ async function saveUpdate() {
     let phone = document.getElementById("updPhone").value;
     let pass = document.getElementById("updPassword").value;
 
-    await fetch(`http://localhost:5000/admin/updateUser/${updateUserId}`, {
+    await fetch(`${BASE_URL}/admin/updateUser/${updateUserId}`, {
         method: "PUT",
         headers: {"Content-Type":"application/json"},
         body: JSON.stringify({phone, password: pass})
     });
 
-    alert("Updated Successfully!");
+    alert("Updated successfully!");
     closePopup();
     loadUsers();
 }
 
 async function deleteUser(id) {
-    if (!confirm("Are you sure want to delete?")) return;
+    if (!confirm("Are you sure?")) return;
 
-    await fetch(`http://localhost:5000/admin/deleteUser/${id}`, {
-        method: "DELETE"
-    });
+    await fetch(`${BASE_URL}/admin/deleteUser/${id}`, { method: "DELETE" });
 
-    alert("User Deleted!");
+    alert("Deleted!");
     loadUsers();
 }
 
 // ---------------- VERIFICATION TABLE ----------------
-
 async function loadVerification() {
-    const res = await fetch("http://localhost:5000/admin/getVerification");
+
+    document.getElementById("tableArea").innerHTML = "<h3>Loading...</h3>";
+
+    const res = await fetch(`${BASE_URL}/admin/getVerification`);
     let data = await res.json();
-    data.sort((a, b) => a.id - b.id);
 
     let html = `
-        <h2>Verification Table</h2>
-        <table>
-            <tr>
-                <th>ID</th>
-                <th>User ID</th>
-                <th>Name</th>
-                <th>DOB</th>
-                <th>Problem</th>
-                <th>PIN</th>
-                <th>Experience</th>
-                <th>Action</th>
-            </tr>
+    <h2>Verification Data</h2>
+    <table>
+        <tr>
+            <th>ID</th><th>User ID</th><th>Name</th><th>DOB</th>
+            <th>Problem</th><th>PIN</th><th>Experience</th><th>Action</th>
+        </tr>
     `;
 
-    data.forEach(row => {
+    data.forEach(r => {
         html += `
-            <tr>
-                <td>${row.id}</td>
-                <td>${row.user_id}</td>
-                <td>${row.full_name}</td>
-                <td>${row.dob}</td>
-                <td>${row.problem}</td>
-                <td>${row.security_pin}</td>
-                <td>${row.experience}</td>
-                <td>
-                    <button class="delete-btn" onclick="deleteVerification(${row.id})">Delete</button>
-                </td>
-            </tr>
-        `;
+        <tr>
+            <td>${r._id}</td>
+            <td>${r.user_id}</td>
+            <td>${r.full_name}</td>
+            <td>${r.dob ? new Date(r.dob).toLocaleDateString() : "-"}</td>
+            <td>${r.problem}</td>
+            <td>${r.security_pin}</td>
+            <td>${r.experience}</td>
+            <td><button class="delete-btn" onclick="deleteVerification('${r._id}')">Delete</button></td>
+        </tr>`;
     });
 
     html += "</table>";
@@ -275,13 +267,11 @@ async function loadVerification() {
 }
 
 async function deleteVerification(id) {
-    if (!confirm("Are you sure want to delete?")) return;
+    if (!confirm("Are you sure?")) return;
 
-    await fetch(`http://localhost:5000/admin/deleteVerification/${id}`, {
-        method: "DELETE"
-    });
+    await fetch(`${BASE_URL}/admin/deleteVerification/${id}`, { method: "DELETE" });
 
-    alert("Verification Deleted!");
+    alert("Deleted!");
     loadVerification();
 }
 
