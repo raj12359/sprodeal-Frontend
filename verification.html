@@ -168,8 +168,8 @@
 </div>
 
 <script>
-// 🔥 SET YOUR DEPLOYED BACKEND URL HERE
-const BASE_URL = "https://sprodeal-backend-5.onrender.com"; 
+// 🔥 Set your deployed backend URL
+const BASE_URL = "https://sprodeal-backend-5.onrender.com";
 
 // PIN toggle
 document.getElementById("toggleEye").addEventListener("click", () => {
@@ -177,12 +177,12 @@ document.getElementById("toggleEye").addEventListener("click", () => {
     pin.type = pin.type === "password" ? "text" : "password";
 });
 
-// SUBMIT FORM
+// Verification form submit
 document.getElementById("verificationForm").addEventListener("submit", async function (e) {
     e.preventDefault();
 
     const user_id = localStorage.getItem("user_id");
-    if(!user_id){
+    if (!user_id) {
         alert("Please login first");
         window.location.href = "index.html";
         return;
@@ -192,48 +192,48 @@ document.getElementById("verificationForm").addEventListener("submit", async fun
     const data = Object.fromEntries(formData.entries());
     data.user_id = user_id;
 
-    if(!/^\d{6}$/.test(data.security_pin)){
+    // PIN validation
+    if (!/^\d{6}$/.test(data.security_pin)) {
         alert("PIN must be 6 digits");
         return;
     }
 
     try {
-        const res = await fetch(`${BASE_URL}/verify`, { // <- yaha BASE_URL use ho raha
-            method:"POST",
-            headers:{"Content-Type":"application/json"},
-            body:JSON.stringify(data)
+        const res = await fetch(`${BASE_URL}/verify`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
         });
 
         const result = await res.json();
 
-        if(result.success){
+        if (result.success) {
             showPopup();
         } else {
             alert(result.message || "Submission failed");
         }
-    } catch(err){
-        console.log(err);
-        alert("Error connecting to server");
+    } catch (err) {
+        console.error("Verification Error:", err);
+        alert("Error connecting to server. Please try again later.");
     }
 });
 
-// SHOW POPUP
-function showPopup(){
+// Popup logic
+function showPopup() {
     document.getElementById("popupOverlay").style.display = "flex";
 
-    // Auto redirect after 10 sec
     setTimeout(() => {
         localStorage.removeItem("user_id");
         window.location.href = "index.html";
     }, 10000);
 }
 
-// OK button
-document.getElementById("okBtn").onclick = function(){
+document.getElementById("okBtn").onclick = function () {
     localStorage.removeItem("user_id");
     window.location.href = "index.html";
-}
+};
 </script>
+
 
 
 </body>

