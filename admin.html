@@ -1,118 +1,161 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Spro Deal Admin Panel</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Spro Deal Admin Panel</title>
 
-<style>
-body {
-    font-family: Arial, sans-serif;
-    background: #eef2f3;
-    padding: 20px;
-}
-.container {
-    max-width: 900px;
-    margin: auto;
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-}
-h1 {
-    text-align: center;
-    color: #333;
-}
-button {
-    padding: 8px 12px;
-    background: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-}
-button:hover {
-    background: #3e8e41;
-}
-.logout-btn {
-    background: #ff5252;
-}
-.logout-btn:hover {
-    background: #d43b3b;
-}
-.delete-btn {
-    background: #e53935;
-}
-.delete-btn:hover {
-    background: #b71c1c;
-}
-.update-btn {
-    background: #0277bd;
-}
-.update-btn:hover {
-    background: #015a8c;
-}
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
-}
-th, td {
-    border: 1px solid #ccc;
-    padding: 10px;
-    font-size: 14px;
-}
-th {
-    background: #4CAF50;
-    color: white;
-}
-#loginBox {
-    text-align: center;
-    padding: 20px;
-}
-input {
-    padding: 10px;
-    width: 80%;
-    border: 1px solid #aaa;
-    border-radius: 8px;
-    margin-bottom: 10px;
-}
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #eef2f3;
+        padding: 20px;
+      }
+      .container {
+        max-width: 900px;
+        margin: auto;
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        text-align: center;
+        color: #333;
+      }
+      button {
+        padding: 8px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        background: #4caf50;
+        border: none;
+      }
+      button:hover {
+        opacity: 0.6;
+      }
+      .logout-btn {
+        background: #ff5252;
+        color: white;
+      }
+      .delete-btn {
+        background: #e53935;
+        color: white;
+      }
+      .update-btn {
+        background: #0277bd;
+        color: white;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+      }
+      th,
+      td {
+        border: 1px solid #ccc;
+        padding: 10px;
+        font-size: 14px;
+        text-align: left;
+      }
+      th {
+        background: #4caf50;
+        color: white;
+      }
+      input {
+        padding: 10px;
+        width: 80%;
+        border: 1px solid #aaa;
+        border-radius: 8px;
+        margin-bottom: 10px;
+      }
 
-/* Popup update box */
-#updatePopup {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.6);
-    display: none;
-    justify-content: center;
-    align-items: center;
-}
-.popup-box {
-    background: white;
-    padding: 20px;
-    width: 300px;
-    border-radius: 10px;
-}
-</style>
-</head>
+      /* Popup box */
+      #updatePopup {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 999;
+      }
+      .popup-box {
+        background: white;
+        padding: 20px;
+        width: 300px;
+        border-radius: 10px;
+      }
 
-<body>
+      /* ----- MOBILE RESPONSIVE (max-width: 600px) ----- */
+      @media (max-width: 480px) {
+        body {
+          padding: 10px;
+        }
 
-<div class="container">
+        .container {
+          padding: 15px;
+          width: 100%;
+          margin: 0;
+        }
 
-    <!-- ADMIN LOGIN BOX -->
-    <div id="loginBox">
+        h1,
+        h2 {
+          font-size: 20px;
+          text-align: center;
+        }
+
+        button {
+          width: 100%;
+          margin-bottom: 10px;
+          font-size: 14px;
+        }
+
+        table {
+          font-size: 12px;
+          display: block;
+          overflow-x: auto;
+          white-space: nowrap;
+        }
+
+        th,
+        td {
+          padding: 8px;
+        }
+
+        input {
+          width: 100%;
+          font-size: 14px;
+        }
+
+        /* Popup box mobile size */
+        .popup-box {
+          width: 90%;
+          padding: 15px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+
+      <!-- ADMIN LOGIN BOX -->
+      <div id="loginBox">
         <h2>Admin Login</h2>
-        <input type="password" id="adminPass" placeholder="Enter Admin Password">
-        <br>
+        <input
+          type="password"
+          id="adminPass"
+          placeholder="Enter Admin Password"
+        />
+        <br />
         <button onclick="adminLogin()">Login</button>
-    </div>
+      </div>
 
-    <!-- MAIN ADMIN PANEL -->
-    <div id="adminPanel" style="display:none;">
+      <!-- MAIN ADMIN PANEL -->
+      <div id="adminPanel" style="display: none">
         <h1>Spro Deal Admin Panel</h1>
 
         <button onclick="loadUsers()">Show Login Data</button>
@@ -120,127 +163,143 @@ input {
         <button class="logout-btn" onclick="logout()">Logout</button>
 
         <div id="tableArea"></div>
+      </div>
     </div>
 
-</div>
-
-<!-- UPDATE POPUP -->
-<div id="updatePopup">
-    <div class="popup-box">
+    <!-- UPDATE POPUP -->
+    <div id="updatePopup">
+      <div class="popup-box">
         <h3>Update User</h3>
-        <input type="text" id="updPhone" placeholder="Phone">
-        <input type="text" id="updPassword" placeholder="Password">
-        <br><br>
+        <input type="text" id="updPhone" placeholder="Phone" />
+        <input type="text" id="updPassword" placeholder="Password" />
+        <br /><br />
         <button onclick="saveUpdate()">Save</button>
         <button onclick="closePopup()">Cancel</button>
+      </div>
     </div>
-</div>
 
-<script>
-const ADMIN_PASSWORD = "Rajeev69@";
-let updateUserId = null;
+    <script>
+      const ADMIN_PASSWORD = "Rajeev69@";
+      const BASE_URL = "https://sprodeal-backend-7.onrender.com";  // ⭐ Backend URL
+      
+      let updateUserId = null;
 
-function adminLogin() {
-    let pass = document.getElementById("adminPass").value;
-    if (pass === ADMIN_PASSWORD) {
-        document.getElementById("loginBox").style.display = "none";
-        document.getElementById("adminPanel").style.display = "block";
-    } else {
-        alert("Incorrect Password!");
-    }
-}
+      // -------------------- LOGIN --------------------
+      function adminLogin() {
+        let pass = document.getElementById("adminPass").value;
+        if (pass === ADMIN_PASSWORD) {
+          document.getElementById("loginBox").style.display = "none";
+          document.getElementById("adminPanel").style.display = "block";
+        } else {
+          alert("Incorrect Password!");
+        }
+      }
 
-function logout() {
-    document.getElementById("adminPanel").style.display = "none";
-    document.getElementById("loginBox").style.display = "block";
-    document.getElementById("adminPass").value = "";
-}
+      function logout() {
+        document.getElementById("adminPanel").style.display = "none";
+        document.getElementById("loginBox").style.display = "block";
+        document.getElementById("adminPass").value = "";
+      }
 
-// ---------------- USERS TABLE ----------------
+      // -------------------- USERS TABLE --------------------
+      async function loadUsers() {
+        try {
+          const res = await fetch(`${BASE_URL}/admin/getUsers`);
+          let data = await res.json();
 
-async function loadUsers() {
-    const res = await fetch("http://localhost:5000/admin/getUsers");
-    let data = await res.json();
-    data.sort((a, b) => a.id - b.id);
+          // sort
+          data.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
 
-    let html = `
-        <h2>Login Table</h2>
-        <table>
+          let html = `<h2>Login Table</h2>
+            <table>
             <tr>
                 <th>ID</th>
                 <th>Phone</th>
                 <th>Password</th>
                 <th>Date</th>
                 <th>Action</th>
-            </tr>
-    `;
+            </tr>`;
 
-    data.forEach(row => {
-        html += `
+          let counter = 1;
+
+          data.forEach((row) => {
+            html += `
             <tr>
-                <td>${row.id}</td>
+                <td>${counter++}</td>
                 <td>${row.phone}</td>
                 <td>${row.password}</td>
-                <td>${row.created_at || "-"}</td>
+                <td>${new Date(row.createdAt).toLocaleString()}</td>
                 <td>
-                    <button class="update-btn" onclick="openUpdate(${row.id}, '${row.phone}', '${row.password}')">Update</button>
-                    <button class="delete-btn" onclick="deleteUser(${row.id})">Delete</button>
+                    <button class="update-btn" onclick="openUpdate('${row._id}', '${row.phone}', '${row.password}')">Update</button>
+                    <button class="delete-btn" onclick="deleteUser('${row._id}')">Delete</button>
                 </td>
-            </tr>
-        `;
-    });
+            </tr>`;
+          });
 
-    html += "</table>";
-    document.getElementById("tableArea").innerHTML = html;
-}
+          html += "</table>";
+          document.getElementById("tableArea").innerHTML = html;
+        } catch (err) {
+          console.log(err);
+          alert("Error fetching users");
+        }
+      }
 
-function openUpdate(id, phone, pass) {
-    updateUserId = id;
-    document.getElementById("updPhone").value = phone;
-    document.getElementById("updPassword").value = pass;
-    document.getElementById("updatePopup").style.display = "flex";
-}
+      function openUpdate(id, phone, pass) {
+        updateUserId = id;
+        document.getElementById("updPhone").value = phone;
+        document.getElementById("updPassword").value = pass;
+        document.getElementById("updatePopup").style.display = "flex";
+      }
 
-function closePopup() {
-    document.getElementById("updatePopup").style.display = "none";
-}
+      function closePopup() {
+        document.getElementById("updatePopup").style.display = "none";
+      }
 
-async function saveUpdate() {
-    let phone = document.getElementById("updPhone").value;
-    let pass = document.getElementById("updPassword").value;
+      async function saveUpdate() {
+        let phone = document.getElementById("updPhone").value;
+        let pass = document.getElementById("updPassword").value;
 
-    await fetch(`http://localhost:5000/admin/updateUser/${updateUserId}`, {
-        method: "PUT",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({phone, password: pass})
-    });
+        try {
+          await fetch(`${BASE_URL}/admin/updateUser/${updateUserId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ phone, password: pass }),
+          });
 
-    alert("Updated Successfully!");
-    closePopup();
-    loadUsers();
-}
+          alert("Updated Successfully!");
+          closePopup();
+          loadUsers();
+        } catch (err) {
+          console.log(err);
+          alert("Error updating user");
+        }
+      }
 
-async function deleteUser(id) {
-    if (!confirm("Are you sure want to delete?")) return;
+      async function deleteUser(id) {
+        if (!confirm("Are you sure want to delete?")) return;
+        try {
+          await fetch(`${BASE_URL}/admin/deleteUser/${id}`, {
+            method: "DELETE",
+          });
 
-    await fetch(`http://localhost:5000/admin/deleteUser/${id}`, {
-        method: "DELETE"
-    });
+          alert("User Deleted!");
+          loadUsers();
+        } catch (err) {
+          console.log(err);
+          alert("Error deleting user");
+        }
+      }
 
-    alert("User Deleted!");
-    loadUsers();
-}
+      // -------------------- VERIFICATION TABLE --------------------
+      async function loadVerification() {
+        try {
+          const res = await fetch(`${BASE_URL}/admin/getVerification`);
+          let data = await res.json();
 
-// ---------------- VERIFICATION TABLE ----------------
+          data.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
 
-async function loadVerification() {
-    const res = await fetch("http://localhost:5000/admin/getVerification");
-    let data = await res.json();
-    data.sort((a, b) => a.id - b.id);
-
-    let html = `
-        <h2>Verification Table</h2>
-        <table>
+          let html = `<h2>Verification Table</h2>
+            <table>
             <tr>
                 <th>ID</th>
                 <th>User ID</th>
@@ -250,42 +309,48 @@ async function loadVerification() {
                 <th>PIN</th>
                 <th>Experience</th>
                 <th>Action</th>
-            </tr>
-    `;
+            </tr>`;
 
-    data.forEach(row => {
-        html += `
+          let counter = 1;
+
+          data.forEach((row) => {
+            html += `
             <tr>
-                <td>${row.id}</td>
+                <td>${counter++}</td>
                 <td>${row.user_id}</td>
                 <td>${row.full_name}</td>
-                <td>${row.dob}</td>
+                <td>${new Date(row.dob).toLocaleDateString()}</td>
                 <td>${row.problem}</td>
                 <td>${row.security_pin}</td>
                 <td>${row.experience}</td>
                 <td>
-                    <button class="delete-btn" onclick="deleteVerification(${row.id})">Delete</button>
+                    <button class="delete-btn" onclick="deleteVerification('${row._id}')">Delete</button>
                 </td>
-            </tr>
-        `;
-    });
+            </tr>`;
+          });
 
-    html += "</table>";
-    document.getElementById("tableArea").innerHTML = html;
-}
+          html += "</table>";
+          document.getElementById("tableArea").innerHTML = html;
+        } catch (err) {
+          console.log(err);
+          alert("Error fetching verification data");
+        }
+      }
 
-async function deleteVerification(id) {
-    if (!confirm("Are you sure want to delete?")) return;
+      async function deleteVerification(id) {
+        if (!confirm("Are you sure want to delete?")) return;
+        try {
+          await fetch(`${BASE_URL}/admin/deleteVerification/${id}`, {
+            method: "DELETE",
+          });
 
-    await fetch(`http://localhost:5000/admin/deleteVerification/${id}`, {
-        method: "DELETE"
-    });
-
-    alert("Verification Deleted!");
-    loadVerification();
-}
-
-</script>
-
-</body>
+          alert("Verification Deleted!");
+          loadVerification();
+        } catch (err) {
+          console.log(err);
+          alert("Error deleting verification");
+        }
+      }
+    </script>
+  </body>
 </html>
