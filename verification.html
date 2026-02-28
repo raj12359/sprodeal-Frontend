@@ -167,19 +167,22 @@
   </div>
 </div>
 
-<script>
-// PIN toggle
+<script type="module">
+import { API_BASE_URL } from "./config.js";
+
+/* ===== PIN TOGGLE ===== */
 document.getElementById("toggleEye").addEventListener("click", () => {
     const pin = document.getElementById("pin");
     pin.type = pin.type === "password" ? "text" : "password";
 });
 
-// SUBMIT FORM
+/* ===== SUBMIT FORM ===== */
 document.getElementById("verificationForm").addEventListener("submit", async function (e) {
     e.preventDefault();
 
-    const user_id = localStorage.getItem("user_id");
-    if(!user_id){
+    const userId = localStorage.getItem("user_id");
+
+    if (!userId) {
         alert("Please login first");
         window.location.href = "index.html";
         return;
@@ -187,44 +190,51 @@ document.getElementById("verificationForm").addEventListener("submit", async fun
 
     const formData = new FormData(this);
     const data = Object.fromEntries(formData.entries());
-    data.user_id = user_id;
 
-    if(!/^\d{6}$/.test(data.security_pin)){
+    // FIXED FIELD NAME
+    data.userId = userId;
+
+    if (!/^\d{6}$/.test(data.security_pin)) {
         alert("PIN must be 6 digits");
         return;
     }
 
-    const res = await fetch("http://localhost:5000/verify", {
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify(data)
-    });
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/verify`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
 
-    const result = await res.json();
+        const result = await res.json();
 
-    if(result.success){
-        showPopup();
-    } else {
-        alert(result.message);
+        if (result.success) {
+            showPopup();
+        } else {
+            alert(result.message || "Verification failed");
+        }
+
+    } catch (err) {
+        console.error(err);
+        alert("Server not responding");
     }
 });
 
-// SHOW POPUP
-function showPopup(){
+/* ===== SHOW POPUP ===== */
+function showPopup() {
     document.getElementById("popupOverlay").style.display = "flex";
 
-    // Auto redirect after 10 sec
     setTimeout(() => {
         localStorage.removeItem("user_id");
         window.location.href = "index.html";
     }, 10000);
 }
 
-// OK button
-document.getElementById("okBtn").onclick = function(){
+/* ===== OK BUTTON ===== */
+document.getElementById("okBtn").onclick = function () {
     localStorage.removeItem("user_id");
     window.location.href = "index.html";
-}
+};
 </script>
 
 </body>

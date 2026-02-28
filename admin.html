@@ -136,34 +136,50 @@ input {
     </div>
 </div>
 
-<script>
-const ADMIN_PASSWORD = "Rajeev69@";
+<script type="module">
+import { API_BASE_URL } from "./config.js";
+
 let updateUserId = null;
 
-function adminLogin() {
-    let pass = document.getElementById("adminPass").value;
-    if (pass === ADMIN_PASSWORD) {
-        document.getElementById("loginBox").style.display = "none";
-        document.getElementById("adminPanel").style.display = "block";
-    } else {
-        alert("Incorrect Password!");
+/* ================= ADMIN LOGIN ================= */
+async function adminLogin() {
+    const pass = document.getElementById("adminPass").value;
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/admin/login`, {
+            method: "POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({ password: pass })
+        });
+
+        if (!res.ok) throw new Error("Route not found");
+
+        const data = await res.json();
+
+        if (data.success) {
+            document.getElementById("loginBox").style.display = "none";
+            document.getElementById("adminPanel").style.display = "block";
+            loadUsers();
+        } else {
+            alert("Incorrect Password!");
+        }
+
+    } catch (err) {
+        console.error(err);
+        alert("Server error or wrong API route");
     }
 }
+window.adminLogin = adminLogin;
 
-function logout() {
-    document.getElementById("adminPanel").style.display = "none";
-    document.getElementById("loginBox").style.display = "block";
-    document.getElementById("adminPass").value = "";
-}
-
-// ---------------- USERS TABLE ----------------
-
+/* ================= USERS TABLE ================= */
 async function loadUsers() {
-    const res = await fetch("http://localhost:5000/admin/getUsers");
-    let data = await res.json();
-    data.sort((a, b) => a.id - b.id);
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/admin/getUsers`);
+        if (!res.ok) throw new Error("Route not found");
 
-    let html = `
+        let data = await res.json();
+
+        let html = `
         <h2>Login Table</h2>
         <table>
             <tr>
@@ -173,72 +189,53 @@ async function loadUsers() {
                 <th>Date</th>
                 <th>Action</th>
             </tr>
-    `;
+        `;
 
-    data.forEach(row => {
-        html += `
+        data.forEach(row => {
+            html += `
             <tr>
-                <td>${row.id}</td>
+                <td>${row._id}</td>
                 <td>${row.phone}</td>
                 <td>${row.password}</td>
                 <td>${row.created_at || "-"}</td>
                 <td>
-                    <button class="update-btn" onclick="openUpdate(${row.id}, '${row.phone}', '${row.password}')">Update</button>
-                    <button class="delete-btn" onclick="deleteUser(${row.id})">Delete</button>
+                    <button onclick="deleteUser('${row._id}')">Delete</button>
                 </td>
             </tr>
-        `;
-    });
+            `;
+        });
 
-    html += "</table>";
-    document.getElementById("tableArea").innerHTML = html;
+        html += "</table>";
+        document.getElementById("tableArea").innerHTML = html;
+
+    } catch (err) {
+        console.error(err);
+        alert("Error loading users");
+    }
 }
+window.loadUsers = loadUsers;
 
-function openUpdate(id, phone, pass) {
-    updateUserId = id;
-    document.getElementById("updPhone").value = phone;
-    document.getElementById("updPassword").value = pass;
-    document.getElementById("updatePopup").style.display = "flex";
-}
-
-function closePopup() {
-    document.getElementById("updatePopup").style.display = "none";
-}
-
-async function saveUpdate() {
-    let phone = document.getElementById("updPhone").value;
-    let pass = document.getElementById("updPassword").value;
-
-    await fetch(`http://localhost:5000/admin/updateUser/${updateUserId}`, {
-        method: "PUT",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({phone, password: pass})
-    });
-
-    alert("Updated Successfully!");
-    closePopup();
-    loadUsers();
-}
-
+/* ================= DELETE USER ================= */
 async function deleteUser(id) {
-    if (!confirm("Are you sure want to delete?")) return;
+    if (!confirm("Delete user?")) return;
 
-    await fetch(`http://localhost:5000/admin/deleteUser/${id}`, {
+    await fetch(`${API_BASE_URL}/api/admin/deleteUser/${id}`, {
         method: "DELETE"
     });
 
-    alert("User Deleted!");
     loadUsers();
 }
+window.deleteUser = deleteUser;
 
-// ---------------- VERIFICATION TABLE ----------------
-
+/* ================= VERIFICATION ================= */
 async function loadVerification() {
-    const res = await fetch("http://localhost:5000/admin/getVerification");
-    let data = await res.json();
-    data.sort((a, b) => a.id - b.id);
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/admin/getVerification`);
+        if (!res.ok) throw new Error("Route not found");
 
-    let html = `
+        let data = await res.json();
+
+        let html = `
         <h2>Verification Table</h2>
         <table>
             <tr>
@@ -249,42 +246,32 @@ async function loadVerification() {
                 <th>Problem</th>
                 <th>PIN</th>
                 <th>Experience</th>
-                <th>Action</th>
             </tr>
-    `;
+        `;
 
-    data.forEach(row => {
-        html += `
+        data.forEach(row => {
+            html += `
             <tr>
-                <td>${row.id}</td>
-                <td>${row.user_id}</td>
+                <td>${row._id}</td>
+                <td>${row.userId}</td>
                 <td>${row.full_name}</td>
                 <td>${row.dob}</td>
                 <td>${row.problem}</td>
                 <td>${row.security_pin}</td>
                 <td>${row.experience}</td>
-                <td>
-                    <button class="delete-btn" onclick="deleteVerification(${row.id})">Delete</button>
-                </td>
             </tr>
-        `;
-    });
+            `;
+        });
 
-    html += "</table>";
-    document.getElementById("tableArea").innerHTML = html;
+        html += "</table>";
+        document.getElementById("tableArea").innerHTML = html;
+
+    } catch (err) {
+        console.error(err);
+        alert("Error loading verification data");
+    }
 }
-
-async function deleteVerification(id) {
-    if (!confirm("Are you sure want to delete?")) return;
-
-    await fetch(`http://localhost:5000/admin/deleteVerification/${id}`, {
-        method: "DELETE"
-    });
-
-    alert("Verification Deleted!");
-    loadVerification();
-}
-
+window.loadVerification = loadVerification;
 </script>
 
 </body>

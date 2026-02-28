@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -78,7 +78,7 @@
         font-size: 18px;
         cursor: pointer;
       }
-      .btn:hover{
+      .btn:hover {
         background: #424647;
       }
       .privacy {
@@ -98,8 +98,6 @@
         color: green;
         cursor: pointer;
       }
-
-     
 
       /* Tablet (max-width: 992px) */
       @media (max-width: 992px) {
@@ -232,7 +230,6 @@
         }
       }
       /* ======================= */
-      
     </style>
   </head>
   <body>
@@ -280,58 +277,54 @@
       <p class="create">create new account?</p>
     </form>
 
-    <script>
-      function togglePassword() {
-        const pass = document.getElementById("password");
-        pass.type = pass.type === "password" ? "text" : "password";
+    <script type="module">
+  import { API_BASE_URL } from "./config.js";
+
+  function togglePassword() {
+    const pass = document.getElementById("password");
+    pass.type = pass.type === "password" ? "text" : "password";
+  }
+  window.togglePassword = togglePassword;
+
+  const loginForm = document.getElementById("loginForm");
+
+  loginForm.addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const phone = document.getElementById("phone").value.trim();
+    const password = document.getElementById("password").value.trim();
+
+    const phoneRegex = /^[0-9]{10}$/;
+    if (!phoneRegex.test(phone)) {
+      alert("Please enter a valid 10-digit phone number.");
+      return;
+    }
+
+    if (password.length < 6 || password.length > 15) {
+      alert("Password must be between 6 and 15 characters.");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone, password }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        localStorage.setItem("user_id", data.userId); // FIXED
+        window.location.href = "verification.html";
+      } else {
+        alert(data.message || "Login failed");
       }
-
-      // Login form submit
-      document
-        .getElementById("loginForm")
-        .addEventListener("submit", async function (e) {
-          e.preventDefault();
-
-          const phone = document.getElementById("phone").value.trim();
-          const password = document.getElementById("password").value.trim();
-
-          // Phone validation: exactly 10 digits
-          const phoneRegex = /^[0-9]{10}$/;
-          if (!phoneRegex.test(phone)) {
-            alert("Please enter a valid 10-digit phone number.");
-            return;
-          }
-
-          // Password validation: min 6, max 8 characters
-          if (password.length < 6 || password.length > 15) {
-            alert("Password must be between 6 and 15 characters.");
-            return;
-          }
-
-          try {
-            // Send login request → DB me insert karega
-            const res = await fetch("http://localhost:5000/login", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ phone, password }),
-            });
-
-            const data = await res.json();
-
-            if (data.success) {
-              // Save user_id for verification page
-              localStorage.setItem("user_id", data.user_id);
-
-              // Redirect
-              window.location.href = "verification.html";
-            } else {
-              alert(data.message);
-            }
-          } catch (err) {
-            console.log(err);
-            alert("Error connecting to server");
-          }
-        });
-    </script>
+    } catch (err) {
+      console.error(err);
+      alert("Error connecting to server");
+    }
+  });
+</script>
   </body>
 </html>
