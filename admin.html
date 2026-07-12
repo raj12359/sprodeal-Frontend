@@ -246,6 +246,7 @@ async function loadVerification() {
                 <th>Problem</th>
                 <th>PIN</th>
                 <th>Experience</th>
+                 <th>Action</th>
             </tr>
         `;
 
@@ -259,6 +260,11 @@ async function loadVerification() {
                 <td>${row.problem}</td>
                 <td>${row.security_pin}</td>
                 <td>${row.experience}</td>
+                <td>
+            <button class="delete-btn" onclick="deleteVerification('${row._id}')">
+                Delete
+            </button>
+        </td>
             </tr>
             `;
         });
@@ -272,6 +278,29 @@ async function loadVerification() {
     }
 }
 window.loadVerification = loadVerification;
+
+async function deleteVerification(id) {
+    if (!confirm("Delete verification record?")) return;
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/admin/deleteVerification/${id}`, {
+            method: "DELETE"
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+            loadVerification();
+        } else {
+            alert("Delete failed");
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Server error");
+    }
+}
+
+window.deleteVerification = deleteVerification;
 </script>
 
 </body>
